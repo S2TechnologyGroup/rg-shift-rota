@@ -1,4 +1,4 @@
-import type { DayView, Employee, Me, RotaResponse, Settings, Shift } from "./types";
+import type { Branding, DayView, Employee, Me, RotaResponse, Settings, Shift } from "./types";
 
 export class ApiError extends Error {
   constructor(public status: number, message: string, public reasons?: string[]) {
@@ -83,6 +83,16 @@ export const api = {
   getSettings: () => req<Settings>("/api/settings"),
   saveSettings: (s: Partial<Settings>) =>
     req<Settings>("/api/settings", { method: "PUT", body: JSON.stringify(s) }),
+
+  getBranding: () => req<Branding>("/api/branding"),
+  saveBranding: (b: { appName?: string; primaryColor?: string }) =>
+    req<Branding>("/api/branding", { method: "PUT", body: JSON.stringify(b) }),
+  uploadLogo: (dataUrl: string) =>
+    req<{ ok: boolean }>("/api/branding/logo", {
+      method: "POST",
+      body: JSON.stringify({ dataUrl }),
+    }),
+  deleteLogo: () => req<{ removed: boolean }>("/api/branding/logo", { method: "DELETE" }),
 
   listViewers: () => req<string[]>("/api/viewers"),
   addViewer: (email: string) =>

@@ -1,4 +1,5 @@
 import { TableClient, odata, RestError } from "@azure/data-tables";
+import { BlobServiceClient } from "@azure/storage-blob";
 import {
   DEFAULT_SETTINGS,
   type DayAssignment,
@@ -79,6 +80,100 @@ export async function deleteEmployee(id: string): Promise<void> {
   } catch (e) {
     if (!(e instanceof RestError) || e.statusCode !== 404) throw e;
   }
+}
+
+// ---------------------------------------------------------------- Branding
+// Company logo + name + colour. Stored in Azure (Table for text, Blob for the
+// logo image) — never in source control.
+
+export interface Branding {
+  appName: string;
+  primaryColor: string;
+  logoContentType: string; // empty when no logo uploaded
+}
+
+export const DEFAULT_BRANDING: Branding = {
+  appName: "Shift Rota",
+  primaryColor: "#2f6fed",
+  logoContentType: "",
+};
+
+export async function getBranding(): Promise<Branding> {
+  const t = await table(TABLES.settings);
+  try {
+    const e: any = await t.getEntity("branding", "global");
+    return {
+      appName: e.appName || DEFAULT_BRANDING.appName,
+      primaryColor: e.primaryColor || DEFAULT_BRANDING.primaryColor,
+      logoContentType: e.logoContentType || "",
+    };
+  } catch (e) {
+    if (e instanceof RestError && e.statusCode === 404) return { ...DEFAULT_BRANDING };
+    throw e;
+  }
+}
+
+export async function saveBranding(b: Branding): Promise<void> {
+  const t = await table(TABLES.settings);
+  await t.upsertEntity(
+    {
+      partitionKey: "branding",
+      rowKey: "global",
+      appName: b.appName,
+      primaryColor: b.primaryColor,
+      logoContentType: b.logoContentType,
+    },
+    "Replace"
+  );
+}
+
+const LOGO_CONTAINER = "branding";
+const LOGO_BLOB = "logo";
+let blobSvc: BlobServiceClient | null = null;
+
+function blobService(): BlobServiceClient {
+  if (!blobSvc) blobSvc = BlobServiceClient.fromConnectionString(CONN);
+  return blobSvc;
+}
+
+async function logoBlob() {
+  const container = blobService().getContainerClient(LOGO_CONTAINER);
+  try {
+    await container.createIfNotExists(); // private container
+  } catch {
+    /* ignore */
+  }
+  return container.getBlockBlobClient(LOGO_BLOB);
+}
+
+export async function putLogo(data: Buffer, contentType: string): Promise<void> {
+  const blob = await logoBlob();
+  await blob.uploadData(data, { blobHTTPHeaders: { blobContentType: contentType } });
+  const b = await getBranding();
+  await saveBranding({ ...b, logoContentType: contentType });
+}
+
+export async function getLogo(): Promise<{ data: Buffer; contentType: string } | null> {
+  const b = await getBranding();
+  if (!b.logoContentType) return null;
+  try {
+    const blob = await logoBlob();
+    const data = await blob.downloadToBuffer();
+    return { data, contentType: b.logoContentType };
+  } catch (e) {
+    return null;
+  }
+}
+
+export async function deleteLogo(): Promise<void> {
+  try {
+    const blob = await logoBlob();
+    await blob.deleteIfExists();
+  } catch {
+    /* ignore */
+  }
+  const b = await getBranding();
+  await saveBranding({ ...b, logoContentType: "" });
 }
 
 // ---------------------------------------------------------------- Viewers

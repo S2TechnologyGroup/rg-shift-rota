@@ -11,6 +11,7 @@ local.settings.json
 
 # azurite local storage emulator data
 .azurite/
+.azrun/
 __azurite_db*__.json
 __blobstorage__/
 __queuestorage__/

@@ -9,6 +9,10 @@ per-day swaps and holidays, and keep an accurate history — signed in with Micr
 - **Hard rule:** there must always be **≥1 Early and ≥1 Late every working day**. Any swap/holiday that would break this is blocked.
 - **Swaps & holidays:** per **day** (swap two people for one day, change one person's day, or book days/weeks off).
 - **History:** past days are frozen snapshots and never change, even after employees are renamed, added or removed.
+- **Dark mode:** per-user light/dark toggle (remembered in the browser).
+- **Branding:** set your company name, logo and primary colour on the Settings tab. Stored in Azure
+  (name/colour in Table Storage, logo image in a private Blob container that's auto-created) —
+  **never in source control**. No extra Azure configuration needed; it reuses the storage account.
 
 ## Architecture & cost
 

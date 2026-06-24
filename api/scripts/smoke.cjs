@@ -176,6 +176,35 @@ function summary(days, date) {
       slots.filter((s) => s === "normal").length === 3
   );
 
+  // ---- Branding (Table text + Blob logo) ----
+  console.log("\nBranding:");
+  const defB = await store.getBranding();
+  ok("default branding name", defB.appName === "Shift Rota");
+  await store.saveBranding({ appName: "Acme Rota", primaryColor: "#123456", logoContentType: "" });
+  const b2 = await store.getBranding();
+  ok("branding text persisted", b2.appName === "Acme Rota" && b2.primaryColor === "#123456");
+  const png = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+    "base64"
+  );
+  try {
+    await store.putLogo(png, "image/png");
+    const gotLogo = await store.getLogo();
+    ok(
+      "logo stored & retrieved from blob",
+      !!gotLogo && gotLogo.contentType === "image/png" && gotLogo.data.length === png.length
+    );
+    ok("branding now reports a logo", (await store.getBranding()).logoContentType === "image/png");
+    await store.deleteLogo();
+    ok("logo removed", (await store.getLogo()) === null);
+  } catch (e) {
+    if (String(e && e.message).includes("not supported by Azurite")) {
+      console.log("  ~ logo blob skipped (local Azurite too old for blob API; works on real Azure)");
+    } else {
+      throw e;
+    }
+  }
+
   console.log(`\n${pass} passed, ${fail} failed.`);
   process.exit(fail === 0 ? 0 : 1);
 })().catch((e) => {

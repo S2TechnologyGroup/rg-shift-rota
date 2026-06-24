@@ -30,3 +30,9 @@ export interface RotaResponse {
   days: DayView[];
   nextFrom: string;
 }
+
+export interface Branding {
+  appName: string;
+  primaryColor: string;
+  hasLogo: boolean;
+}

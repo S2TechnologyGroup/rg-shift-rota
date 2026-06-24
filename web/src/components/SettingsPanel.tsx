@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, type ChangeEvent } from "react";
 import { ApiError, api } from "../api";
-import type { Settings, Shift } from "../types";
+import type { Branding, Settings, Shift } from "../types";
 import { SHIFT_LABEL } from "../lib/display";
 
 const SHIFT_ORDER: Shift[] = ["early", "late", "normal"];
@@ -17,14 +17,49 @@ const DAYS = [
 export function SettingsPanel({
   settings,
   onSaved,
+  branding,
+  onBrandingChanged,
 }: {
   settings: Settings;
   onSaved: (s: Settings) => void;
+  branding: Branding | null;
+  onBrandingChanged: () => void | Promise<void>;
 }) {
   const [draft, setDraft] = useState<Settings>(structuredClone(settings));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+
+  // Branding state
+  const [appName, setAppName] = useState(branding?.appName ?? "Shift Rota");
+  const [color, setColor] = useState(branding?.primaryColor ?? "#2f6fed");
+  const [bBusy, setBBusy] = useState(false);
+  const [bError, setBError] = useState<string | null>(null);
+  const [logoV, setLogoV] = useState(Date.now());
+
+  async function runBranding(fn: () => Promise<unknown>) {
+    setBBusy(true);
+    setBError(null);
+    try {
+      await fn();
+      await onBrandingChanged();
+      setLogoV(Date.now());
+    } catch (e) {
+      setBError(e instanceof ApiError ? e.message : (e as Error).message);
+    } finally {
+      setBBusy(false);
+    }
+  }
+
+  function onLogoFile(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => runBranding(() => api.uploadLogo(reader.result as string));
+    reader.onerror = () => setBError("Couldn't read that file.");
+    reader.readAsDataURL(file);
+  }
 
   function setTime(shift: Shift, key: "start" | "end", value: string) {
     setDraft((d) => ({
@@ -69,9 +104,53 @@ export function SettingsPanel({
   return (
     <div className="panel">
       <h2 style={{ marginTop: 0 }}>Settings</h2>
-      {error && <div className="error">{error}</div>}
 
-      <h3>Shift times</h3>
+      <h3>Branding</h3>
+      <p className="hint">
+        Your logo and name are stored securely in Azure — never in source control. SVG or PNG works
+        best (max 2 MB).
+      </p>
+      {bError && <div className="error">{bError}</div>}
+      <div className="inline-form" style={{ marginTop: 0, alignItems: "center" }}>
+        {branding?.hasLogo ? (
+          <img className="logo-preview" src={`/api/branding/logo?v=${logoV}`} alt="Current logo" />
+        ) : (
+          <span className="muted">No logo set</span>
+        )}
+        <label className="field">
+          <span style={{ fontSize: 12, color: "var(--muted)" }}>Upload logo</span>
+          <input type="file" accept="image/*" disabled={bBusy} onChange={onLogoFile} />
+        </label>
+        {branding?.hasLogo && (
+          <button
+            className="danger"
+            disabled={bBusy}
+            onClick={() => runBranding(() => api.deleteLogo())}
+          >
+            Remove logo
+          </button>
+        )}
+      </div>
+      <div className="inline-form">
+        <div className="field">
+          <label>App name</label>
+          <input value={appName} onChange={(e) => setAppName(e.target.value)} maxLength={60} />
+        </div>
+        <div className="field">
+          <label>Primary colour</label>
+          <input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
+        </div>
+        <button
+          className="primary"
+          disabled={bBusy}
+          onClick={() => runBranding(() => api.saveBranding({ appName, primaryColor: color }))}
+        >
+          Save branding
+        </button>
+      </div>
+
+      <h3 style={{ marginTop: 24 }}>Shift times</h3>
+      {error && <div className="error">{error}</div>}
       <table className="list" style={{ maxWidth: 440 }}>
         <thead>
           <tr>
