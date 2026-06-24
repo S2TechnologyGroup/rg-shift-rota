@@ -1,0 +1,26 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+api/dist/
+web/dist/
+
+# azure functions local config (contains connection strings / secrets)
+local.settings.json
+
+# azurite local storage emulator data
+.azurite/
+__azurite_db*__.json
+__blobstorage__/
+__queuestorage__/
+
+# misc
+.env
+.env.*
+*.log
+.DS_Store
+.vscode/
+
+# typescript incremental build info
+*.tsbuildinfo

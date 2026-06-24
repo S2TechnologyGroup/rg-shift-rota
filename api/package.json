@@ -1,0 +1,28 @@
+{
+  "name": "shift-rota-api",
+  "version": "1.0.0",
+  "description": "Azure Functions API for the Shift Rota app",
+  "private": true,
+  "main": "dist/functions/*.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "prestart": "npm run clean && npm run build",
+    "start": "func start",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "azurite": "azurite-table --silent --location ./.azurite",
+    "smoke": "npm run build && node scripts/smoke.cjs"
+  },
+  "dependencies": {
+    "@azure/data-tables": "^13.3.0",
+    "@azure/functions": "^4.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "azurite": "^3.35.0",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  }
+}
