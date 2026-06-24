@@ -125,11 +125,22 @@ export function buildWeekSlots(n: number, earliesTarget = 2, latesTarget = 1): S
   }
   const nn = remaining;
 
-  return [
+  const specials: Shift[] = [
     ...Array<Shift>(ne).fill("early"),
     ...Array<Shift>(nl).fill("late"),
-    ...Array<Shift>(nn).fill("normal"),
   ];
+  const normals: Shift[] = Array<Shift>(nn).fill("normal");
+
+  // Interleave specials with normals so a special week is followed by a normal
+  // week (see api/src/lib/rota.ts for the full explanation).
+  const slots: Shift[] = [];
+  let i = 0;
+  let j = 0;
+  while (i < specials.length || j < normals.length) {
+    if (i < specials.length) slots.push(specials[i++]);
+    if (j < normals.length) slots.push(normals[j++]);
+  }
+  return slots;
 }
 
 function mod(a: number, m: number): number {

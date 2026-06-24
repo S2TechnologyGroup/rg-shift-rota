@@ -16,6 +16,7 @@ const TABLES = {
   overrides: "DayOverrides",
   off: "DayOff",
   records: "DayRecords",
+  viewers: "Viewers",
 } as const;
 
 const clients = new Map<string, TableClient>();
@@ -75,6 +76,35 @@ export async function deleteEmployee(id: string): Promise<void> {
   const t = await table(TABLES.employees);
   try {
     await t.deleteEntity("emp", id);
+  } catch (e) {
+    if (!(e instanceof RestError) || e.statusCode !== 404) throw e;
+  }
+}
+
+// ---------------------------------------------------------------- Viewers
+// View-only users: can see the rota but are not part of it and cannot edit.
+
+export async function listViewers(): Promise<string[]> {
+  const t = await table(TABLES.viewers);
+  const out: string[] = [];
+  for await (const e of t.listEntities<any>({
+    queryOptions: { filter: odata`PartitionKey eq 'viewer'` },
+  })) {
+    out.push(String(e.email ?? e.rowKey).toLowerCase());
+  }
+  return out;
+}
+
+export async function addViewer(email: string): Promise<void> {
+  const t = await table(TABLES.viewers);
+  const key = email.toLowerCase();
+  await t.upsertEntity({ partitionKey: "viewer", rowKey: key, email: key }, "Replace");
+}
+
+export async function removeViewer(email: string): Promise<void> {
+  const t = await table(TABLES.viewers);
+  try {
+    await t.deleteEntity("viewer", email.toLowerCase());
   } catch (e) {
     if (!(e instanceof RestError) || e.statusCode !== 404) throw e;
   }

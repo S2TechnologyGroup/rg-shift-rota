@@ -126,6 +126,12 @@ export function workingDaysOfWeek(anyDateInWeek: string, settings: Settings): st
  * The shift "slots" for a week given headcount `n`.
  * Targets default to 2 earlies + 1 late, rest normal, and gracefully degrade
  * for tiny teams while keeping at least one early and one late when possible.
+ *
+ * The slots are arranged by INTERLEAVING the "special" shifts (earlies/lates)
+ * with normals, e.g. for 6 people: [early, normal, early, normal, late, normal].
+ * Because each person advances one slot per week (a cyclic shift), this makes a
+ * special week always be followed by a normal week — i.e. if you're on Earlies
+ * one week you're on Normals the next. Counts per week are unchanged.
  */
 export function buildWeekSlots(n: number, earliesTarget = 2, latesTarget = 1): Shift[] {
   if (n <= 0) return [];
@@ -145,11 +151,22 @@ export function buildWeekSlots(n: number, earliesTarget = 2, latesTarget = 1): S
   }
   const nn = remaining;
 
-  return [
+  const specials: Shift[] = [
     ...Array<Shift>(ne).fill("early"),
     ...Array<Shift>(nl).fill("late"),
-    ...Array<Shift>(nn).fill("normal"),
   ];
+  const normals: Shift[] = Array<Shift>(nn).fill("normal");
+
+  // Interleave: special, normal, special, normal, ... so specials are spaced
+  // out by normal weeks as much as the headcount allows.
+  const slots: Shift[] = [];
+  let i = 0;
+  let j = 0;
+  while (i < specials.length || j < normals.length) {
+    if (i < specials.length) slots.push(specials[i++]);
+    if (j < normals.length) slots.push(normals[j++]);
+  }
+  return slots;
 }
 
 function mod(a: number, m: number): number {

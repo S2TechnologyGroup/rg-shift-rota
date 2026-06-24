@@ -86,6 +86,24 @@ describe("rotation", () => {
     const wN = baseWeekShifts(emps, 6, settings);
     for (const e of emps) expect(wN.get(e.id)).toBe(w0.get(e.id));
   });
+  it("a special week (early/late) is always followed by a normal week (n=6)", () => {
+    const emps = mkEmployees(6);
+    for (const e of emps) {
+      for (let w = 0; w < 12; w++) {
+        const thisWeek = baseWeekShifts(emps, w, settings).get(e.id)!;
+        const nextWeek = baseWeekShifts(emps, w + 1, settings).get(e.id)!;
+        if (thisWeek === "early" || thisWeek === "late") {
+          expect(nextWeek).toBe("normal");
+        }
+      }
+    }
+  });
+
+  it("interleaved slots keep target coverage (n=6 and n=8)", () => {
+    expect(counts(buildWeekSlots(6))).toEqual({ early: 2, late: 1, normal: 3 });
+    expect(counts(buildWeekSlots(8))).toEqual({ early: 2, late: 1, normal: 5 });
+  });
+
   it("everyone cycles through all distinct shift positions over n weeks", () => {
     const emps = mkEmployees(6);
     const seen = new Map<string, Set<Shift>>(emps.map((e) => [e.id, new Set()]));

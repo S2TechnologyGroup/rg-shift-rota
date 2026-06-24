@@ -4,16 +4,20 @@ import type { Employee } from "../types";
 
 export function EmployeesPanel() {
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [viewers, setViewers] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [viewerEmail, setViewerEmail] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function load() {
     setLoading(true);
     try {
-      setEmployees(await api.listEmployees());
+      const [emps, vws] = await Promise.all([api.listEmployees(), api.listViewers()]);
+      setEmployees(emps);
+      setViewers(vws);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -58,6 +62,17 @@ export function EmployeesPanel() {
       await api.createEmployee(name.trim(), email.trim());
       setName("");
       setEmail("");
+    });
+  }
+
+  async function addViewerEmail() {
+    if (!viewerEmail.trim()) {
+      setError("Enter an email.");
+      return;
+    }
+    await run(async () => {
+      await api.addViewer(viewerEmail.trim());
+      setViewerEmail("");
     });
   }
 
@@ -148,6 +163,56 @@ export function EmployeesPanel() {
         </div>
         <button className="primary" disabled={busy} onClick={add}>
           Add employee
+        </button>
+      </div>
+
+      <h2 style={{ marginTop: 32 }}>View-only users</h2>
+      <p className="hint">
+        These people can sign in and see the rota, but are not part of the rotation and can't make
+        changes.
+      </p>
+      <table className="list" style={{ maxWidth: 520 }}>
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {viewers.map((v) => (
+            <tr key={v}>
+              <td className="muted">{v}</td>
+              <td>
+                <button
+                  className="danger"
+                  disabled={busy}
+                  onClick={() => run(() => api.removeViewer(v))}
+                >
+                  Remove
+                </button>
+              </td>
+            </tr>
+          ))}
+          {viewers.length === 0 && (
+            <tr>
+              <td colSpan={2} className="muted">
+                No view-only users yet.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+      <div className="inline-form">
+        <div className="field">
+          <label>Email (M365)</label>
+          <input
+            value={viewerEmail}
+            onChange={(e) => setViewerEmail(e.target.value)}
+            placeholder="manager@company.com"
+          />
+        </div>
+        <button className="primary" disabled={busy} onClick={addViewerEmail}>
+          Add viewer
         </button>
       </div>
     </div>

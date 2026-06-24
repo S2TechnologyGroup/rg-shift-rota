@@ -31,6 +31,8 @@ export function App() {
 
   if (loading) return <div className="spinner">Loading…</div>;
 
+  const canEdit = !!me?.canEdit;
+
   if (!me?.signedIn) {
     return (
       <div className="center-screen">
@@ -73,7 +75,8 @@ export function App() {
         <h1>🗓️ Shift Rota</h1>
         <div className="spacer" />
         <span className="user">
-          {me.displayName} {me.isAdmin ? "· admin" : ""}
+          {me.displayName} · {me.role ?? ""}
+          {!canEdit ? " (view-only)" : ""}
         </span>
         <a href="/.auth/logout?post_logout_redirect_uri=/">
           <button>Sign out</button>
@@ -84,21 +87,28 @@ export function App() {
         <button className={tab === "rota" ? "active" : ""} onClick={() => setTab("rota")}>
           Rota
         </button>
-        <button
-          className={tab === "employees" ? "active" : ""}
-          onClick={() => setTab("employees")}
-        >
-          Employees
-        </button>
-        <button className={tab === "settings" ? "active" : ""} onClick={() => setTab("settings")}>
-          Settings
-        </button>
+        {canEdit && (
+          <>
+            <button
+              className={tab === "employees" ? "active" : ""}
+              onClick={() => setTab("employees")}
+            >
+              People
+            </button>
+            <button
+              className={tab === "settings" ? "active" : ""}
+              onClick={() => setTab("settings")}
+            >
+              Settings
+            </button>
+          </>
+        )}
       </nav>
 
       <main className="container">
-        {tab === "rota" && <RotaGrid settings={settings} />}
-        {tab === "employees" && <EmployeesPanel />}
-        {tab === "settings" && (
+        {tab === "rota" && <RotaGrid settings={settings} canEdit={canEdit} />}
+        {canEdit && tab === "employees" && <EmployeesPanel />}
+        {canEdit && tab === "settings" && (
           <SettingsPanel settings={settings} onSaved={setSettings} />
         )}
       </main>

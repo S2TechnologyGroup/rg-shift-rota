@@ -138,6 +138,44 @@ function summary(days, date) {
     service.setDayOverride(pastDate, anEmp.id, "late")
   );
 
+  // ---- Roles ----
+  console.log("\nRoles:");
+  const auth = require("../dist/lib/auth.js");
+  const empList = await store.listEmployees();
+  ok("admin role from ALLOWED_ADMINS", auth.roleFor("admin@example.com", empList, []) === "admin");
+  ok("member role from active employee", auth.roleFor("emp1@example.com", empList, []) === "member");
+  ok(
+    "viewer role from viewers list",
+    auth.roleFor("v@example.com", empList, ["v@example.com"]) === "viewer"
+  );
+  ok("unknown user has no role", auth.roleFor("nobody@example.com", empList, []) === null);
+  ok("viewer cannot edit", auth.canEdit("viewer") === false);
+  ok("member can edit", auth.canEdit("member") === true);
+
+  // ---- Viewers store ----
+  console.log("\nViewers store:");
+  await store.addViewer("Viewer@Example.com");
+  ok("viewer persisted (lowercased)", (await store.listViewers()).includes("viewer@example.com"));
+  await store.removeViewer("viewer@example.com");
+  ok("viewer removed", !(await store.listViewers()).includes("viewer@example.com"));
+
+  // ---- Alternating pattern ----
+  console.log("\nAlternating pattern:");
+  const slots = rota.buildWeekSlots(6, 2, 1);
+  let altOK = true;
+  for (let i = 0; i < slots.length; i++) {
+    const cur = slots[i];
+    const next = slots[(i + 1) % slots.length];
+    if (cur !== "normal" && next !== "normal") altOK = false;
+  }
+  ok("every special week is followed by a normal week (n=6)", altOK);
+  ok(
+    "alternating slots keep coverage 2E/1L/3N",
+    slots.filter((s) => s === "early").length === 2 &&
+      slots.filter((s) => s === "late").length === 1 &&
+      slots.filter((s) => s === "normal").length === 3
+  );
+
   console.log(`\n${pass} passed, ${fail} failed.`);
   process.exit(fail === 0 ? 0 : 1);
 })().catch((e) => {

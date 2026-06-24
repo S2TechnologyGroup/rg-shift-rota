@@ -1,5 +1,5 @@
 import { app, type HttpRequest } from "@azure/functions";
-import { authed } from "../lib/handler";
+import { authedEditor } from "../lib/handler";
 import { HttpError, json } from "../lib/http";
 import { swapDay } from "../lib/service";
 
@@ -8,7 +8,7 @@ app.http("swap", {
   methods: ["POST"],
   authLevel: "anonymous",
   route: "swap",
-  handler: authed(async (req: HttpRequest) => {
+  handler: authedEditor(async (req: HttpRequest) => {
     const { date, aId, bId } = (await req.json()) as {
       date?: string;
       aId?: string;

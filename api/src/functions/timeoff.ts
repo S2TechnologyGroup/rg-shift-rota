@@ -1,5 +1,5 @@
 import { app, type HttpRequest } from "@azure/functions";
-import { authed } from "../lib/handler";
+import { authedEditor } from "../lib/handler";
 import { HttpError, json } from "../lib/http";
 import { setDayOff, setWeekOff } from "../lib/service";
 import { getSettings } from "../lib/store";
@@ -12,7 +12,7 @@ app.http("timeoff", {
   methods: ["POST"],
   authLevel: "anonymous",
   route: "timeoff",
-  handler: authed(async (req: HttpRequest) => {
+  handler: authedEditor(async (req: HttpRequest) => {
     const body = (await req.json()) as {
       date?: string;
       weekOf?: string;

@@ -1,5 +1,5 @@
 import { app, type HttpRequest } from "@azure/functions";
-import { authed } from "../lib/handler";
+import { authedEditor } from "../lib/handler";
 import { HttpError, json } from "../lib/http";
 import { setDayOverride } from "../lib/service";
 import { SHIFTS, type Shift } from "../lib/rota";
@@ -10,7 +10,7 @@ app.http("overrides", {
   methods: ["POST", "DELETE"],
   authLevel: "anonymous",
   route: "overrides",
-  handler: authed(async (req: HttpRequest) => {
+  handler: authedEditor(async (req: HttpRequest) => {
     const body = (await req.json()) as { date?: string; employeeId?: string; shift?: Shift };
     const { date, employeeId } = body;
     if (!date || !employeeId) {

@@ -1,6 +1,6 @@
 import { app, type HttpRequest, type InvocationContext } from "@azure/functions";
-import { emailOf, getPrincipal, isAdmin, isAuthorized } from "../lib/auth";
-import { listEmployees } from "../lib/store";
+import { canEdit, emailOf, getPrincipal, roleFor } from "../lib/auth";
+import { listEmployees, listViewers } from "../lib/store";
 import { autoSeal } from "../lib/service";
 import { json } from "../lib/http";
 
@@ -15,9 +15,10 @@ app.http("me", {
     const email = emailOf(principal);
     if (!email) return json(200, { signedIn: false, authorized: false });
 
-    const employees = await listEmployees();
-    const authorized = isAuthorized(email, employees);
-    if (authorized) {
+    const [employees, viewers] = await Promise.all([listEmployees(), listViewers()]);
+    const role = roleFor(email, employees, viewers);
+
+    if (role) {
       // Advance history sealing whenever an authorised user loads the app.
       try {
         await autoSeal();
@@ -28,9 +29,11 @@ app.http("me", {
     const me = employees.find((e) => e.email === email) || null;
     return json(200, {
       signedIn: true,
-      authorized,
+      authorized: !!role,
+      role: role ?? null,
+      canEdit: canEdit(role),
       email,
-      isAdmin: isAdmin(email),
+      isAdmin: role === "admin",
       displayName: me?.displayName ?? principal?.userDetails ?? email,
       employeeId: me?.id ?? null,
     });

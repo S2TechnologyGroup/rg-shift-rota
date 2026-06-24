@@ -11,7 +11,7 @@ interface Row {
   order: number;
 }
 
-export function RotaGrid({ settings }: { settings: Settings }) {
+export function RotaGrid({ settings, canEdit }: { settings: Settings; canEdit: boolean }) {
   const [weekStart, setWeekStart] = useState(() => mondayOf(todayISO()));
   const [days, setDays] = useState<DayView[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -130,6 +130,7 @@ export function RotaGrid({ settings }: { settings: Settings }) {
                       day={d}
                       empId={row.id}
                       settings={settings}
+                      editable={canEdit && !d.sealed}
                       onClick={() => setDialog({ date: d.date, empId: row.id })}
                     />
                   ))}
@@ -144,10 +145,14 @@ export function RotaGrid({ settings }: { settings: Settings }) {
         <span><span className="swatch" style={{ background: "var(--early)" }} /> Earlies {shiftTime("early", settings)}</span>
         <span><span className="swatch" style={{ background: "var(--late)" }} /> Lates {shiftTime("late", settings)}</span>
         <span><span className="swatch" style={{ background: "var(--normal)" }} /> Normal {shiftTime("normal", settings)}</span>
-        <span className="hint">Click a current/future cell to swap, change or book time off. Past weeks are locked.</span>
+        <span className="hint">
+          {canEdit
+            ? "Click a current/future cell to swap, change or book time off. Past weeks are locked."
+            : "You have view-only access."}
+        </span>
       </div>
 
-      {dialog && dialogDay && (
+      {canEdit && dialog && dialogDay && (
         <DayCellDialog
           date={dialog.date}
           empId={dialog.empId}
@@ -180,23 +185,29 @@ function Cell({
   day,
   empId,
   settings,
+  editable,
   onClick,
 }: {
   day: DayView;
   empId: string;
   settings: Settings;
+  editable: boolean;
   onClick: () => void;
 }) {
   const a = day.assignments.find((x) => x.employeeId === empId);
   const isOff = !a && day.off.includes(empId);
 
-  if (day.sealed) {
+  // Read-only rendering (sealed past days, or any day for view-only users).
+  if (!editable) {
     return (
-      <td className="sealed">
+      <td className={day.sealed ? "sealed" : undefined}>
         {a ? (
           <div className={`cell ${a.shift}`}>
             <span className="label">{SHIFT_LABEL[a.shift]}</span>
+            <span className="time">{shiftTime(a.shift, settings)}</span>
           </div>
+        ) : isOff ? (
+          <div className="cell off">Off</div>
         ) : (
           <div className="cell empty">—</div>
         )}

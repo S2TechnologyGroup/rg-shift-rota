@@ -33,14 +33,29 @@ function adminAllowlist(): string[] {
     .filter(Boolean);
 }
 
+export type Role = "admin" | "member" | "viewer";
+
 /**
- * Authorisation for the Free-plan model: a signed-in M365 user is allowed only
- * if their email is a bootstrap admin or matches an active employee.
+ * Determine a signed-in user's role (Free-plan model):
+ *  - admin  : email is in the ALLOWED_ADMINS bootstrap list
+ *  - member : email matches an active employee (appears in the rota, can edit)
+ *  - viewer : email is on the viewers allowlist (can view, not in the rota, read-only)
+ *  - null   : not authorised
  */
-export function isAuthorized(email: string, employees: Employee[]): boolean {
-  if (!email) return false;
-  if (adminAllowlist().includes(email)) return true;
-  return employees.some((e) => e.active && e.email.toLowerCase() === email);
+export function roleFor(
+  email: string,
+  employees: Employee[],
+  viewers: string[]
+): Role | null {
+  if (!email) return null;
+  if (adminAllowlist().includes(email)) return "admin";
+  if (employees.some((e) => e.active && e.email.toLowerCase() === email)) return "member";
+  if (viewers.map((v) => v.toLowerCase()).includes(email)) return "viewer";
+  return null;
+}
+
+export function canEdit(role: Role | null): boolean {
+  return role === "admin" || role === "member";
 }
 
 export function isAdmin(email: string): boolean {

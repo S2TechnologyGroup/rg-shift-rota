@@ -18,12 +18,16 @@ app.http("employees", {
   methods: ["GET", "POST", "PUT", "DELETE"],
   authLevel: "anonymous",
   route: "employees",
-  handler: authed(async (req: HttpRequest) => {
+  handler: authed(async (req: HttpRequest, _ctx, user) => {
     if (req.method === "GET") {
       const employees = (await listEmployees()).sort(
         (a, b) => a.rotationOrder - b.rotationOrder
       );
       return json(200, employees);
+    }
+
+    if (!user.canEdit) {
+      throw new HttpError(403, { error: "You have view-only access and can't make changes." });
     }
 
     // Any roster change must not retroactively alter history.

@@ -35,12 +35,18 @@ shift-rota/
 ## Authentication model (important)
 
 The **Free plan** only offers the preconfigured Entra provider, which lets *any* Microsoft account
-authenticate. So the app authorises in the API: a signed-in user is allowed only if their email is
+authenticate. So the app authorises in the API by **role**, based on the signed-in email:
 
-1. listed in the `ALLOWED_ADMINS` app setting (the bootstrap), **or**
-2. an **active employee** in the app.
+| Role | Who | Can do |
+|---|---|---|
+| **admin** | email in the `ALLOWED_ADMINS` app setting | everything (bootstrap) |
+| **member** | an **active employee** | in the rota; can edit swaps/holidays and manage people/settings |
+| **viewer** | email on the in-app **view-only** list (People tab) | see the rota only — not in the rotation, no edits |
 
-Unknown users get a friendly "ask an admin to add you" screen.
+Anyone else gets a friendly "ask an admin to add you" screen.
+
+> **Important:** `ALLOWED_ADMINS` must exactly match the email you sign in with (your M365 UPN,
+> e.g. `you@example.com`). If it doesn't match, you'll be treated as unauthorised.
 
 **Bootstrap:** set `ALLOWED_ADMINS` to your email, sign in, then add the other employees on the
 Employees tab. After that everyone listed can sign in and edit.
@@ -141,10 +147,12 @@ targets, working days, and the rotation start week). Done.
 ## How the rota is calculated
 
 For `n` active employees, each week's slots are `2 Earlies, 1 Late, n-3 Normal` (targets configurable).
-Sorting employees by their rotation order, week `w` assigns employee `i` the slot at
-`(i + w) mod n` — a cyclic shift, so coverage is exact every week and everyone rotates fairly. Days
-default to that weekly shift; **day overrides** and **days off** layer on top for swaps/holidays, and
-every change is validated to keep ≥1 Early and ≥1 Late.
+The slots are **interleaved** (`early, normal, early, normal, late, normal, …`). Sorting employees by
+their rotation order, week `w` assigns employee `i` the slot at `(i + w) mod n` — a cyclic shift, so
+coverage is exact every week and everyone rotates fairly. Because specials are spaced out by normals,
+**a person on Earlies/Lates one week is on Normals the next**. Days default to that weekly shift;
+**day overrides** and **days off** layer on top for swaps/holidays, and every change is validated to
+keep ≥1 Early and ≥1 Late.
 
 **History:** completed working days are frozen into immutable `DayRecords` (capturing each person's
 name at the time). The freeze advances automatically as days pass and always runs *before* any roster

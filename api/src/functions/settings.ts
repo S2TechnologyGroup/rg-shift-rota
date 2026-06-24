@@ -13,9 +13,13 @@ app.http("settings", {
   methods: ["GET", "PUT"],
   authLevel: "anonymous",
   route: "settings",
-  handler: authed(async (req: HttpRequest) => {
+  handler: authed(async (req: HttpRequest, _ctx, user) => {
     if (req.method === "GET") {
       return json(200, await getSettings());
+    }
+
+    if (!user.canEdit) {
+      throw new HttpError(403, { error: "You have view-only access and can't make changes." });
     }
 
     // Changing the pattern must not rewrite history.
