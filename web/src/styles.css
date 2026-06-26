@@ -43,8 +43,8 @@
 :root[data-theme="dark"] .badge.warn { background: rgba(240, 185, 72, 0.16); }
 :root[data-theme="dark"] .badge.bad { background: rgba(255, 122, 122, 0.16); }
 :root[data-theme="dark"] .error { background: #3a1c1c; border-color: #5a2a2a; color: #ffb4b4; }
-:root[data-theme="dark"] button { background: #212a38; color: var(--text); }
-:root[data-theme="dark"] button:hover { background: #2a3444; }
+:root[data-theme="dark"] button:not(.cell) { background: #212a38; color: var(--text); }
+:root[data-theme="dark"] button:not(.cell):hover { background: #2a3444; }
 :root[data-theme="dark"] button.primary { color: #fff; }
 :root[data-theme="dark"] input,
 :root[data-theme="dark"] select { background: #212a38; color: var(--text); }
