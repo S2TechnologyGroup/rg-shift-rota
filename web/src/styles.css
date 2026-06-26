@@ -135,8 +135,8 @@ table.rota thead th .date { display: block; font-size: 11px; font-weight: 400; }
   line-height: 1.25;
   border: 1px solid transparent;
 }
-.cell .label { font-weight: 600; }
-.cell .time { font-size: 11px; opacity: 0.8; }
+.cell .label { display: block; font-weight: 600; }
+.cell .time { display: block; font-size: 11px; opacity: 0.8; margin-top: 2px; }
 .cell.early { background: var(--early); color: var(--early-text); }
 .cell.late { background: var(--late); color: var(--late-text); }
 .cell.normal { background: var(--normal); color: var(--normal-text); }
@@ -203,11 +203,22 @@ td.sealed .cell { cursor: default; opacity: 0.85; }
   .toolbar { gap: 8px; }
   .toolbar .week-label { font-size: 14px; width: 100%; order: 5; }
 
-  /* Rota grid: compact cells, horizontal scroll, sticky names already on */
-  table.rota th, table.rota td { padding: 5px 4px; }
-  table.rota td.name, table.rota th.name { max-width: 96px; overflow: hidden; text-overflow: ellipsis; }
-  .cell { padding: 5px 3px; font-size: 12px; }
-  .cell .time { font-size: 10px; }
+  /* Rota grid: fit the whole week on screen — no horizontal scroll */
+  table.rota { table-layout: fixed; width: 100%; }
+  table.rota th, table.rota td { padding: 4px 2px; }
+  table.rota th.name, table.rota td.name {
+    width: 52px;
+    max-width: 52px;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  table.rota thead th .date { display: none; }
+  .cell { padding: 4px 1px; font-size: 11px; word-break: break-word; }
+  .cell .label { font-size: 11px; }
+  .cell .time { font-size: 10px; line-height: 1.15; }
+  .coverage { gap: 3px; }
+  .badge { padding: 1px 5px; }
 
   .modal { padding: 16px; border-radius: 12px; }
   .modal .actions { flex-wrap: wrap; }
