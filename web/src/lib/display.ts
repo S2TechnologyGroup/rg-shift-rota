@@ -8,7 +8,7 @@ export const SHIFT_LABEL: Record<Shift, string> = {
 
 export function shiftTime(shift: Shift, settings: Settings): string {
   const w = settings.shiftTimes[shift];
-  return `${w.start}–${w.end}`;
+  return `${w.start} – ${w.end}`;
 }
 
 const DOW = ["", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];

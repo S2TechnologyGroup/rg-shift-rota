@@ -19,33 +19,37 @@
 }
 
 :root[data-theme="dark"] {
-  --bg: #0e1320;
-  --panel: #161d2e;
-  --border: #2a3447;
-  --text: #e7ebf3;
-  --muted: #98a3ba;
+  --bg: #0d1117;
+  --panel: #171c26;
+  --border: #2b333f;
+  --text: #e8ecf3;
+  --muted: #9aa5b6;
   --brand: #5b8dff;
   --brand-dark: #4376ec;
-  --early: #4d3a1c;
-  --early-text: #f3c98e;
-  --late: #1f3a63;
-  --late-text: #a9c8ff;
-  --normal: #2a3247;
-  --normal-text: #c4ccdc;
-  --ok: #45c785;
-  --warn: #e0a93a;
-  --bad: #f06464;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 6px 18px rgba(0, 0, 0, 0.35);
+  /* Shift cells: deep, saturated fills with high-contrast text */
+  --early: #6b4a16;
+  --early-text: #ffd79b;
+  --late: #1f4f8f;
+  --late-text: #cfe0ff;
+  --normal: #39404e;
+  --normal-text: #d4dae5;
+  --ok: #4ad991;
+  --warn: #f0b948;
+  --bad: #ff7a7a;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.45), 0 6px 18px rgba(0, 0, 0, 0.4);
 }
-:root[data-theme="dark"] .badge.ok { background: #143524; }
-:root[data-theme="dark"] .badge.warn { background: #3a2f12; }
-:root[data-theme="dark"] .badge.bad { background: #3c1a1a; }
+:root[data-theme="dark"] .cell { border-color: rgba(255, 255, 255, 0.08); }
+:root[data-theme="dark"] .badge.ok { background: rgba(74, 217, 145, 0.16); }
+:root[data-theme="dark"] .badge.warn { background: rgba(240, 185, 72, 0.16); }
+:root[data-theme="dark"] .badge.bad { background: rgba(255, 122, 122, 0.16); }
 :root[data-theme="dark"] .error { background: #3a1c1c; border-color: #5a2a2a; color: #ffb4b4; }
-:root[data-theme="dark"] button { background: #1d2638; color: var(--text); }
-:root[data-theme="dark"] button:hover { background: #242f44; }
+:root[data-theme="dark"] button { background: #212a38; color: var(--text); }
+:root[data-theme="dark"] button:hover { background: #2a3444; }
+:root[data-theme="dark"] button.primary { color: #fff; }
 :root[data-theme="dark"] input,
-:root[data-theme="dark"] select { background: #1d2638; color: var(--text); }
-:root[data-theme="dark"] .cell.off { background: repeating-linear-gradient(45deg, #1a2233, #1a2233 6px, #222c40 6px, #222c40 12px); }
+:root[data-theme="dark"] select { background: #212a38; color: var(--text); }
+:root[data-theme="dark"] .cell.off { color: var(--muted); background: repeating-linear-gradient(45deg, #1b2230, #1b2230 6px, #232c3c 6px, #232c3c 12px); }
+:root[data-theme="dark"] .cell.empty { color: var(--muted); }
 
 * { box-sizing: border-box; }
 
@@ -111,7 +115,15 @@ a { color: var(--brand); }
 
 table.rota { width: 100%; border-collapse: separate; border-spacing: 0; }
 table.rota th, table.rota td { padding: 8px; text-align: center; border-bottom: 1px solid var(--border); }
-table.rota th.name, table.rota td.name { text-align: left; font-weight: 600; white-space: nowrap; }
+table.rota th.name, table.rota td.name {
+  text-align: left;
+  font-weight: 600;
+  white-space: nowrap;
+  position: sticky;
+  left: 0;
+  background: var(--panel);
+  z-index: 1;
+}
 table.rota thead th { font-size: 13px; color: var(--muted); font-weight: 600; }
 table.rota thead th .dow { display: block; font-size: 12px; }
 table.rota thead th .date { display: block; font-size: 11px; font-weight: 400; }
@@ -145,7 +157,7 @@ td.sealed .cell { cursor: default; opacity: 0.85; }
 
 /* Modal */
 .modal-backdrop { position: fixed; inset: 0; background: rgba(20, 28, 50, 0.45); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 50; }
-.modal { background: #fff; border-radius: 14px; box-shadow: var(--shadow); width: 100%; max-width: 440px; padding: 20px; }
+.modal { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); width: 100%; max-width: 440px; padding: 20px; }
 .modal h3 { margin: 0 0 4px; }
 .modal .sub { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
 .modal .row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
@@ -164,7 +176,7 @@ td.sealed .cell { cursor: default; opacity: 0.85; }
 .field label { font-size: 12px; color: var(--muted); }
 
 .center-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
-.card { background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 32px; max-width: 420px; text-align: center; }
+.card { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); padding: 32px; max-width: 420px; text-align: center; }
 .card h2 { margin-top: 0; }
 .muted { color: var(--muted); }
 .spinner { color: var(--muted); padding: 40px; text-align: center; }
@@ -172,3 +184,41 @@ td.sealed .cell { cursor: default; opacity: 0.85; }
 .shift-chip.early { background: var(--early); color: var(--early-text); }
 .shift-chip.late { background: var(--late); color: var(--late-text); }
 .shift-chip.normal { background: var(--normal); color: var(--normal-text); }
+
+/* ------------------------------------------------------------------ Mobile */
+@media (max-width: 640px) {
+  .container { padding: 12px; }
+
+  .app-header { padding: 10px 12px; gap: 8px; flex-wrap: wrap; }
+  .app-header h1 { font-size: 16px; }
+  .app-header img.brand-logo { height: 24px; }
+  .app-header .spacer { display: none; }
+  .app-header .user { font-size: 11px; order: 5; width: 100%; }
+
+  .tabs { padding: 0 8px; }
+  .tabs button { padding: 11px 12px; }
+
+  .panel { padding: 12px; }
+
+  .toolbar { gap: 8px; }
+  .toolbar .week-label { font-size: 14px; width: 100%; order: 5; }
+
+  /* Rota grid: compact cells, horizontal scroll, sticky names already on */
+  table.rota th, table.rota td { padding: 5px 4px; }
+  table.rota td.name, table.rota th.name { max-width: 96px; overflow: hidden; text-overflow: ellipsis; }
+  .cell { padding: 5px 3px; font-size: 12px; }
+  .cell .time { font-size: 10px; }
+
+  .modal { padding: 16px; border-radius: 12px; }
+  .modal .actions { flex-wrap: wrap; }
+  .modal .actions button { flex: 1 1 auto; }
+
+  .card { padding: 24px; }
+  .list th, .list td { padding: 7px 6px; }
+}
+
+/* Larger, finger-friendly tap targets on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  button { min-height: 40px; }
+  button.cell { min-height: 44px; }
+}
